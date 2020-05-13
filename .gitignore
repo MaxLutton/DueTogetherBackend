@@ -1,3 +1,14 @@
 
 *.sqlite3
 manage.py
+PlannerAppFrontend/migrations/__init__.py
+PlannerAppFrontend/migrations/__init__.py
+*.pyc
+*.pyc
+*.pyc
+*.pyc
+PlannerApiApp/migrations/__init__.py
+*.pyc
+PlannerAppFrontend/migrations/__pycache__/__init__.cpython-37.pyc
+*.pyc
+PlannerApiApp/__pycache__/models.cpython-37.pyc
