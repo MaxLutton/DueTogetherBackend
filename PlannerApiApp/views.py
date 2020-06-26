@@ -5,12 +5,15 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import permissions
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.decorators import action
+from django.shortcuts import get_object_or_404
+from rest_framework import status
 
 import logging
 
-from .serializers import TaskSerializer, UserSerializer
-from .models import Task
-from .permissions import IsOwnerOrReadOnly
+from .serializers import TaskSerializer, UserSerializer, TeamSerializer
+from .models import Task, Team
+from .permissions import IsOwnerOrReadOnly, IsTeamOwnerOrReadyOnly
 
 logger = logging.getLogger(__name__)
 
@@ -83,3 +86,20 @@ class UserCreate(generics.CreateAPIView):
         permissions.AllowAny # Or anon users can't register
     ]
     serializer_class = UserSerializer
+
+# Use for GET many and create new Teams
+class TeamList(generics.ListCreateAPIView):
+    queryset = Team.objects.all()
+    serializer_class = TeamSerializer
+    # Need to be logged in to create or view teams
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        # Automatically make team's creator the owner
+        serializer.save(team_owner=self.request.user, team_members=[self.request.user])
+
+# Use for GET, PATCH, Delete Teams
+class TeamDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Team.objects.all()
+    serializer_class = TeamSerializer
+    permission_classes = [IsTeamOwnerOrReadyOnly]

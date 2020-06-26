@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Task
+from .models import Task, Team
 from django.contrib.auth.models import User
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -28,4 +28,10 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         # To serialize all fields
         fields = ('id', 'username', 'password', 'owned_tasks', 'assigned_tasks')
+
+class TeamSerializer(serializers.ModelSerializer):
+    team_owner = serializers.ReadOnlyField(source='team_owner.username')
+    class Meta:
+        model = Team
+        fields = '__all__'
     

@@ -12,9 +12,17 @@ class Task(models.Model):
     dueDate = models.DateTimeField(default=datetime.datetime.now() + datetime.timedelta(days=7))
     points = models.IntegerField(default=0)
     completedDate = models.DateTimeField(blank=True, null=True)
-    foo = models.BooleanField(blank=True, null=True)
 
     def __str__(self):
         return self.title
+
+class Team(models.Model):
+    name = models.CharField(max_length=50)
+    team_owner = models.ForeignKey('auth.User', related_name='team_owner', on_delete=models.CASCADE)
+    team_members = models.ManyToManyField(get_user_model(), blank=True)
+
+    def __str__(self):
+        return self.name
+
 
 
