@@ -97,7 +97,7 @@ class TeamList(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         # Automatically make team's creator the owner
-        serializer.save(team_owner=self.request.user, team_members=self.request.user)
+        serializer.save(team_owner=self.request.user, team_members=[self.request.user])
 
 # Use for GET, PATCH, Delete Teams
 class TeamDetail(generics.RetrieveUpdateDestroyAPIView):

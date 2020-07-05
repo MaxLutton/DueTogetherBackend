@@ -14,7 +14,7 @@ class TeamSerializer(serializers.ModelSerializer):
     #team_owner = serializers.ReadOnlyField(source='team_owner.username')
     team_owner = serializers.StringRelatedField()
     #team_members = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True)
-    team_members = serializers.StringRelatedField(many=True)
+    team_members = serializers.StringRelatedField(many=True, required=False)
     class Meta:
         model = Team
         fields = '__all__'
@@ -27,7 +27,6 @@ class UserSerializer(serializers.ModelSerializer):
     assigned_tasks = TaskSerializer(many=True, required=False)
     password = serializers.CharField(write_only=True)
     teams = TeamSerializer(many=True, required=False)
-    #teams = serializers.PrimaryKeyRelatedField(many=True, queryset=Team.objects.all(), required=False)
 
     def create(self, validated_data):
         user = User.objects.create(
