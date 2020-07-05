@@ -19,7 +19,7 @@ class Task(models.Model):
 class Team(models.Model):
     name = models.CharField(max_length=50)
     team_owner = models.ForeignKey('auth.User', related_name='team_owner', on_delete=models.CASCADE)
-    team_members = models.ManyToManyField(get_user_model(), blank=True)
+    team_members = models.ManyToManyField(get_user_model(), related_name="teams")
 
     def __str__(self):
         return self.name
