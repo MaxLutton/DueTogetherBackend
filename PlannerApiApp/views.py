@@ -73,6 +73,7 @@ def apiOverview(request):
 class UserList(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 # Use for GET on individual Users.
 class UserDetail(generics.RetrieveAPIView):
