@@ -32,7 +32,8 @@ class TaskList(generics.ListCreateAPIView):
         'assignee': ['exact'],
         'createdDate': ['gte', 'lte', 'exact', 'gt', 'lt'],
         'dueDate': ['gte', 'lte', 'exact', 'gt', 'lt'],
-        'points': ['gte', 'lte', 'exact', 'gt', 'lt']
+        'points': ['gte', 'lte', 'exact', 'gt', 'lt'],
+        'team': ['exact']
     }
 
     def perform_create(self, serializer):
@@ -53,9 +54,23 @@ class TaskDetail(generics.RetrieveUpdateDestroyAPIView):
     # Override for updating the assignee
     def perform_update(self, serializer):
         assigneeUsername = self.request.data.get("assignee")
+        teamName = self.request.data.get("team")
         if assigneeUsername and User.objects.filter(username=assigneeUsername).exists():
+            logging.warning("Updating assignee: {}".format(assigneeUsername))
             assigneeObject = User.objects.get(username=assigneeUsername)
             serializer.save(assignee=assigneeObject)
+        elif assigneeUsername and not User.objects.filter(username=assigneeUsername).exists():
+            logger.error("Invalid assignee username {}".format(assigneeUsername))
+            # TODO: Raise Invalid Request Error
+        if teamName and Team.objects.filter(name=teamName).exists():
+            logging.warning("Updating team name {}".format(teamName))
+            teamObject = Team.objects.get(name=teamName)
+            serializer.save(team=teamObject)
+        elif teamName and not Team.objects.filter(name=teamName).exists():
+            logger.error("Invalid team name {}".format(teamName))
+            # TODO: Raise Invalid Request Error
+
+        
     
 # Use for getting API help info.
 @api_view(['GET'])
@@ -104,5 +119,18 @@ class TeamDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Team.objects.all()
     serializer_class = TeamSerializer
     permission_classes = [IsTeamOwnerOrReadyOnly]
+
+    def perform_update(self, serializer):
+        memberUsernames = self.request.data.get("team_members")
+        if memberUsernames:
+            membersToAdd = []
+            for user in memberUsernames:
+                if User.objects.filter(username=user).exists():
+                    logger.warning("Adding user: {}".format(user))
+                    membersToAdd.append(User.objects.get(username=user))
+                else:
+                    logger.error("User not found: {}".format(user))
+                    # TODO: Raise Error
+            serializer.save(team_members=membersToAdd)
 
 

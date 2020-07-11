@@ -12,6 +12,7 @@ class Task(models.Model):
     dueDate = models.DateTimeField(default=datetime.datetime.now() + datetime.timedelta(days=7))
     points = models.IntegerField(default=0)
     completedDate = models.DateTimeField(blank=True, null=True)
+    team = models.ForeignKey('Team', related_name='team_tasks', on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.title
