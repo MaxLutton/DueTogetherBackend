@@ -25,5 +25,7 @@ class Team(models.Model):
     def __str__(self):
         return self.name
 
-
+class UserProfile(models.Model):
+    user = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='profile')
+    user_points = models.IntegerField(default=0)
 
