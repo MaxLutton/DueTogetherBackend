@@ -49,22 +49,27 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     # Override for updating the assignee
     def perform_update(self, serializer):
+        logger.warning("Data: {}".format(self.request.data))
         assigneeUsername = self.request.data.get("assignee")
         teamName = self.request.data.get("team")
+        data = {}
         if assigneeUsername and User.objects.filter(username=assigneeUsername).exists():
             logging.warning("Updating assignee: {}".format(assigneeUsername))
             assigneeObject = User.objects.get(username=assigneeUsername)
-            serializer.save(assignee=assigneeObject)
+            data["assignee"] = assigneeObject
         elif assigneeUsername and not User.objects.filter(username=assigneeUsername).exists():
             logger.error("Invalid assignee username {}".format(assigneeUsername))
             # TODO: Raise Invalid Request Error
         if teamName and Team.objects.filter(name=teamName).exists():
             logging.warning("Updating team name {}".format(teamName))
             teamObject = Team.objects.get(name=teamName)
-            serializer.save(team=teamObject)
+            data["team"] = teamObject
         elif teamName and not Team.objects.filter(name=teamName).exists():
             logger.error("Invalid team name {}".format(teamName))
             # TODO: Raise Invalid Request Error
+        if self.request.data.get("completed") is not None:
+            data["completed"] = self.request.data.get("completed")
+        serializer.save(**data)
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()

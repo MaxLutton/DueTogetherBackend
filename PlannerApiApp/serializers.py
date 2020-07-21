@@ -1,6 +1,7 @@
 from rest_framework import serializers
 import logging
-from .models import Task, Team, UserProfile
+from datetime import datetime
+from .models import Task, Team, UserProfile, Point
 from django.contrib.auth.models import User
 
 logger = logging.getLogger(__name__)
@@ -15,14 +16,45 @@ class TaskSerializer(serializers.ModelSerializer):
     assignee = serializers.ReadOnlyField(source='assignee.username')
     team = serializers.SlugRelatedField(queryset=Team.objects.all(), slug_field="name", required=False)
 
+    def update(self, instance, validated_data):
+        logger.warning("Got: {}".format(validated_data))
+        instance.completed = validated_data.get("completed", instance.completed)
+        instance.assignee = validated_data.get("assignee", instance.assignee)
+        instance.team = validated_data.get("team", instance.team)
+        if validated_data.get("completed"):
+            instance.completedDate = datetime.now()
+            #assignee = User.objects.get(username=instance.assignee)
+            if instance.team:
+                #team = Team.objects.get(name=instance.team)
+                new_point = Point.objects.create(
+                    value=instance.points, 
+                    team=instance.team,
+                    user=instance.assignee.profile
+                )
+            else:
+                new_point = Point.objects.create(
+                    value=instance.points, 
+                    user=instance.assignee.profile
+                )
+                logging.warning("Instance {} ".format(instance.assignee))
+            new_point.save()
+        instance.save()
+
+        return instance
+
+class PointSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Point
+        fields = '__all__'
 
 class TeamSerializer(serializers.ModelSerializer):
     team_owner = serializers.StringRelatedField()
     team_members = serializers.SlugRelatedField(queryset=User.objects.all(), slug_field="username", many=True, required=False)
     team_tasks = TaskSerializer(many=True, required=False)
+    team_points = PointSerializer(many=True, required=False)
     class Meta:
         model = Team
-        fields = ('name', 'team_owner', 'team_members', 'team_tasks', 'id')
+        fields = ('name', 'team_owner', 'team_members', 'team_tasks', 'id', 'team_points')
     
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -30,6 +62,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         #fields = ('user_points')
         fields = '__all__'
+    user_points = PointSerializer(many=True, required=False)
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

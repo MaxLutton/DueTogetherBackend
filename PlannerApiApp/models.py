@@ -27,5 +27,11 @@ class Team(models.Model):
 
 class UserProfile(models.Model):
     user = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='profile')
-    user_points = models.IntegerField(default=0)
+    # user_points = models.IntegerField(default=0)
+
+class Point(models.Model):
+    value = models.IntegerField(default=1, null=False)
+    date = models.DateTimeField(default=datetime.datetime.now())
+    team = models.ForeignKey(Team, models.CASCADE, related_name='team_points', null=True)
+    user = models.ForeignKey(UserProfile, models.CASCADE, related_name='user_points', null=True)
 
