@@ -31,6 +31,8 @@ class TaskSerializer(serializers.ModelSerializer):
                     team=instance.team,
                     user=instance.assignee.profile
                 )
+                instance.team.team_total_points += instance.points
+                instance.team.save()
             else:
                 new_point = Point.objects.create(
                     value=instance.points, 
@@ -38,6 +40,8 @@ class TaskSerializer(serializers.ModelSerializer):
                 )
                 logging.warning("Instance {} ".format(instance.assignee))
             new_point.save()
+            instance.assignee.profile.user_total_points += instance.points
+            instance.assignee.profile.save()
         instance.save()
 
         return instance
@@ -54,7 +58,7 @@ class TeamSerializer(serializers.ModelSerializer):
     team_points = PointSerializer(many=True, required=False)
     class Meta:
         model = Team
-        fields = ('name', 'team_owner', 'team_members', 'team_tasks', 'id', 'team_points')
+        fields = ('name', 'team_owner', 'team_members', 'team_tasks', 'id', 'team_points', 'team_total_points')
     
 
 class UserProfileSerializer(serializers.ModelSerializer):

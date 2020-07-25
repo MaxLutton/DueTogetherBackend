@@ -21,13 +21,14 @@ class Team(models.Model):
     name = models.CharField(max_length=50)
     team_owner = models.ForeignKey('auth.User', related_name='team_owner', on_delete=models.CASCADE)
     team_members = models.ManyToManyField(get_user_model(), related_name="teams")
+    team_total_points = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name
 
 class UserProfile(models.Model):
     user = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='profile')
-    # user_points = models.IntegerField(default=0)
+    user_total_points = models.IntegerField(default=0)
 
 class Point(models.Model):
     value = models.IntegerField(default=1, null=False)
