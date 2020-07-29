@@ -1,6 +1,6 @@
 from rest_framework import serializers
 import logging
-from datetime import datetime
+import datetime
 from .models import Task, Team, UserProfile, Point
 from django.contrib.auth.models import User
 
@@ -22,26 +22,29 @@ class TaskSerializer(serializers.ModelSerializer):
         instance.assignee = validated_data.get("assignee", instance.assignee)
         instance.team = validated_data.get("team", instance.team)
         if validated_data.get("completed"):
-            instance.completedDate = datetime.now()
+            instance.completedDate = datetime.datetime.now()
+            instance.assignee.profile.user_total_points += instance.points
+            instance.assignee.profile.save()
             #assignee = User.objects.get(username=instance.assignee)
             if instance.team:
                 #team = Team.objects.get(name=instance.team)
+                instance.team.team_total_points += instance.points
+                instance.team.save()
                 new_point = Point.objects.create(
                     value=instance.points, 
                     team=instance.team,
-                    user=instance.assignee.profile
+                    user=instance.assignee.profile,
+                    current_total_user=instance.assignee.profile.user_total_points,
+                    current_total_team=instance.team.team_total_points
                 )
-                instance.team.team_total_points += instance.points
-                instance.team.save()
             else:
                 new_point = Point.objects.create(
                     value=instance.points, 
-                    user=instance.assignee.profile
+                    user=instance.assignee.profile,
+                    current_total_user=instance.assignee.profile.user_total_points
                 )
                 logging.warning("Instance {} ".format(instance.assignee))
             new_point.save()
-            instance.assignee.profile.user_total_points += instance.points
-            instance.assignee.profile.save()
         instance.save()
 
         return instance
@@ -87,7 +90,7 @@ class UserSerializer(serializers.ModelSerializer):
         profile_data = validated_data.get("profile")
         # Set defaults. Probably want to fix this later...
         if not profile_data:
-            profile_data = {"user_points": 0}
+            profile_data = {"user_total_points": 0}
         user = User.objects.create(
             username=validated_data['username']
         )
@@ -106,7 +109,7 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
 
         # Allow user to update their points total.
-        profile.user_points = profile_data.get("user_points", profile.user_points)
+        profile.user_points.set(profile_data.get("user_points", profile.user_points))
         profile.save()
 
         return instance
