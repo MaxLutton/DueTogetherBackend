@@ -20,6 +20,7 @@ class TaskSerializer(serializers.ModelSerializer):
         logger.warning("Got: {}".format(validated_data))
         instance.completed = validated_data.get("completed", instance.completed)
         instance.assignee = validated_data.get("assignee", instance.assignee)
+        instance.points = validated_data.get("points", instance.points)
         instance.team = validated_data.get("team", instance.team)
         if validated_data.get("completed"):
             instance.completedDate = datetime.datetime.now()

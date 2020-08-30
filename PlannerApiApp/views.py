@@ -52,6 +52,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         logger.warning("Data: {}".format(self.request.data))
         assigneeUsername = self.request.data.get("assignee")
         teamName = self.request.data.get("team")
+        points = self.request.data.get("points")
         data = {}
         if assigneeUsername and User.objects.filter(username=assigneeUsername).exists():
             logging.warning("Updating assignee: {}".format(assigneeUsername))
@@ -67,6 +68,9 @@ class TaskViewSet(viewsets.ModelViewSet):
         elif teamName and not Team.objects.filter(name=teamName).exists():
             logger.error("Invalid team name {}".format(teamName))
             # TODO: Raise Invalid Request Error
+        if points is not None:
+            logging.warning("Updating points value to {}".format(points))
+            data["points"] = int(points)
         if self.request.data.get("completed") is not None:
             data["completed"] = self.request.data.get("completed")
         serializer.save(**data)
