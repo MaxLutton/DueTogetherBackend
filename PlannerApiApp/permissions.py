@@ -29,6 +29,15 @@ class IsTeamOwnerOrReadyOnly(permissions.BasePermission):
         # Write permissions are only allowed to the owner of the snippet.
         return obj.team_owner == request.user
 
+class IsOnTeam(permissions.BasePermission):
+    """
+    Custom permission to only allow members of an object to edit it.
+    """
+    def has_object_permission(self, request, view, obj):
+        
+        # Write permissions are only allowed to the owner
+        return request.user in obj.team_members.all()
+
 class IsSelfOrAdmin(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         # Only allow the object access to itself

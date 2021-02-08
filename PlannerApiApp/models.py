@@ -42,3 +42,7 @@ class Point(models.Model):
     team = models.ForeignKey(Team, models.CASCADE, related_name='team_points', null=True)
     user = models.ForeignKey(UserProfile, models.CASCADE, related_name='user_points', null=True)
 
+class TeamRequest(models.Model):
+    from_user = models.ForeignKey("auth.User", related_name="from_user", on_delete=models.CASCADE)
+    to_team = models.ForeignKey(Team, related_name="to_team", on_delete=models.CASCADE)
+

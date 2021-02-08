@@ -1,7 +1,7 @@
 from rest_framework import serializers
 import logging
 import datetime
-from .models import Task, Team, UserProfile, Point
+from .models import Task, Team, UserProfile, Point, TeamRequest
 from django.contrib.auth.models import User
 
 logger = logging.getLogger(__name__)
@@ -116,5 +116,8 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
     
-
+class TeamRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TeamRequest
+        fields = '__all__'
 

@@ -32,8 +32,12 @@ router.register(r'users', views.UserViewSet)
 router.register(r'tasks', views.TaskViewSet)
 router.register(r'teams', views.TeamViewSet)
 
+
 urlpatterns = [
     re_path(r'^', include(router.urls)),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh')
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('teams/<int:pk>/team_request/', views.TeamViewSet.as_view({"get": "get_team_requests", "post": "create_team_request"})),
+    path('teams/<int:pk>/team_request/<int:request_id>/accept/', views.TeamViewSet.as_view({"post": "accept_team_request"})),
+    path('teams/<int:pk>/team_request/<int:request_id>/reject/', views.TeamViewSet.as_view({"post": "reject_team_request"})),
 ]

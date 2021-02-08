@@ -3,12 +3,14 @@ from rest_framework import permissions
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework import viewsets
-
+from django.contrib.auth.decorators import login_required
+from rest_framework.response import Response
+from rest_framework import status
 import logging
 
-from .serializers import TaskSerializer, UserSerializer, TeamSerializer
-from .models import Task, Team
-from .permissions import IsOwnerOrReadOnly, IsTeamOwnerOrReadyOnly, IsSelfOrAdmin
+from .serializers import TaskSerializer, UserSerializer, TeamSerializer, TeamRequestSerializer
+from .models import Task, Team, TeamRequest
+from .permissions import IsOwnerOrReadOnly, IsTeamOwnerOrReadyOnly, IsSelfOrAdmin, IsOnTeam
 
 logger = logging.getLogger(__name__)
 
@@ -87,10 +89,12 @@ class UserViewSet(viewsets.ModelViewSet):
             permission_classes = [permissions.AllowAny]
         elif self.action == "update" or self.action == "partial_update":
             permission_classes = [IsSelfOrAdmin]
+        elif self.action == "create_team_request":
+            permission_classes = [permissions.IsAuthenticated]
+            logging.warning("HI")
         else:
-            permission_classes = [permissions.IsAdmin]
+            permission_classes = [permissions.IsAdminUser]
         return  [permission() for permission in permission_classes]
-
         
 
 class TeamViewSet(viewsets.ModelViewSet):
@@ -115,10 +119,57 @@ class TeamViewSet(viewsets.ModelViewSet):
             serializer.save(team_members=membersToAdd)
 
     def get_permissions(self):
-        if self.action == "list" or self.action == "retrieve" or self.action == "create":
+        logger.warning(f"IT IS {self.action}")
+        if self.action == "list" or self.action == "retrieve" or self.action == "create" or self.action == "create_team_request":
             permission_classes = [permissions.IsAuthenticated]
+        elif self.action == "get_team_requests" or self.action == "accept_team_request" or self.action == "reject_team_request":
+            permission_classes = [IsOnTeam]
         else:
             permission_classes = [IsTeamOwnerOrReadyOnly]
             # TODO: Want to add admin access...
         return  [permission() for permission in permission_classes]
+    
+    @action(methods=["post"], detail=True)
+    def create_team_request(self, request, pk=None):
+        from_user = request.user
+        to_team = self.get_object()
+        instance, created = TeamRequest.objects.get_or_create(from_user=from_user, to_team=to_team)
+        serializer = TeamRequestSerializer(instance=instance)
+        if created:
+            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+    
+    @action(methods=["post"], detail=True)
+    def reject_team_request(self, request, pk=None, *args, **kwargs):
+        request_id = kwargs["request_id"]
+        instance = TeamRequest.objects.get(id=request_id)
+        instance.delete()
+        return Response(status=status.HTTP_200_OK)
+    
+    @action(methods=["post"], detail=True)
+    def accept_team_request(self, request, pk=None, *args, **kwargs):
+        request_id = kwargs["request_id"]
+        instance = TeamRequest.objects.get(id=request_id)
+        user = instance.from_user
+        team = self.get_object()
+        instance.delete()
+        if user:
+            logger.warning(f"Adding user: {user}")
+            team.team_members.add(user)
+            serializer = TeamSerializer(team, data={"name": team.name})
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return  Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True)
+    def get_team_requests(self, request, pk=None):
+        team = self.get_object()
+        team_reqs = TeamRequest.objects.filter(to_team=team)
+        req_data = []
+        for req in team_reqs:
+            req_data.append(TeamRequestSerializer(instance=req).data)
+        return Response(data=req_data, status=status.HTTP_200_OK)
