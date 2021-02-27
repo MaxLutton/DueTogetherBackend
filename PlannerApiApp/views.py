@@ -170,6 +170,8 @@ class TeamViewSet(viewsets.ModelViewSet):
         team = self.get_object()
         team_reqs = TeamRequest.objects.filter(to_team=team)
         req_data = []
-        for req in team_reqs:
-            req_data.append(TeamRequestSerializer(instance=req).data)
+        for req in list(team_reqs):
+            temp_req = TeamRequestSerializer(instance=req).data
+            temp_req["from_user_name"] = req.from_user.username
+            req_data.append(temp_req)
         return Response(data=req_data, status=status.HTTP_200_OK)
