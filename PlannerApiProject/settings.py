@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Push Notifications
+    'fcm_django',
     #Mine
     'PlannerApiApp',
     'PlannerAppFrontend',
@@ -167,4 +169,18 @@ LOGGING = {
             'propagate': True,
         },
     },
+}
+
+FCM_DJANGO_SETTINGS = {
+         # default: _('FCM Django')
+        "APP_VERBOSE_NAME": "com.example.plannerappandroid",
+         # Your firebase API KEY
+        "FCM_SERVER_KEY": "AAAAE2k4PlQ:APA91bGDa81VHwzfzyKP13wHci98zyCLWrBb3v10QO-5J1gENt7XAvunKYirBcaetnFK4Twq2iNh-hC1nq2CC-hdnF__-rKedKJcRDrrgjznm8YwBM1zEneqDqO3-FLgSIxy2HWXvSsV",
+         # true if you want to have only one active device per registered user at a time
+         # default: False
+        "ONE_DEVICE_PER_USER": False,
+         # devices to which notifications cannot be sent,
+         # are deleted upon receiving error response from FCM
+         # default: False
+        "DELETE_INACTIVE_DEVICES": False,
 }

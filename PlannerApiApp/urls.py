@@ -5,6 +5,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+from fcm_django.api.rest_framework import FCMDeviceViewSet
 from . import views
 
 '''
@@ -31,7 +32,7 @@ router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'tasks', views.TaskViewSet)
 router.register(r'teams', views.TeamViewSet)
-
+router.register(r'devices', FCMDeviceViewSet)
 
 urlpatterns = [
     re_path(r'^', include(router.urls)),

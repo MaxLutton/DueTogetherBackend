@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from rest_framework.response import Response
 from rest_framework import status
 import logging
+from fcm_django.models import FCMDevice
 
 from .serializers import TaskSerializer, UserSerializer, TeamSerializer, TeamRequestSerializer
 from .models import Task, Team, TeamRequest
@@ -154,6 +155,9 @@ class TeamViewSet(viewsets.ModelViewSet):
         team = self.get_object()
         instance.delete()
         if user:
+            acceptedDevice = FCMDevice.objects.get(user=user)
+            logger.warning(f"Notifiying user with device: {acceptedDevice}")
+            acceptedDevice.send_message(title="You've been accepted!")
             logger.warning(f"Adding user: {user}")
             team.team_members.add(user)
             serializer = TeamSerializer(team, data={"name": team.name})
